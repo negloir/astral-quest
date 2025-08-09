@@ -17,7 +17,9 @@ jobs:
       - name: Sync pacman database
         run: dkp-pacman -Syu --noconfirm
       - name: Install nds-dev and tools
-        run: dkp-pacman -S --noconfirm devkitARM general-tools dstools ndstool libnds libfat-nds nds-dev
+        run: dkp-pacman -S --noconfirm devkitARM general-tools dstools ndstool libnds libfat-nds nds-dev dkp-toolchain-vars
+      - name: Set up devkitPro environment
+        run: source /etc/profile.d/devkit-env.sh
       - name: Build .NDS
         run: make
       - name: Upload NDS artifact
