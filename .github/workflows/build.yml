@@ -10,10 +10,14 @@ jobs:
       image: devkitpro/devkitarm:latest
     steps:
       - uses: actions/checkout@v4
+      - name: Initialize pacman keys
+        run: |
+          pacman-key --init
+          pacman-key --populate
       - name: Sync pacman database
         run: dkp-pacman -Syu --noconfirm
-      - name: Install nds-dev
-        run: dkp-pacman -S --noconfirm nds-dev
+      - name: Install nds-dev and tools
+        run: dkp-pacman -S --noconfirm devkitARM general-tools dstools ndstool libnds libfat-nds nds-dev
       - name: Build .NDS
         run: make
       - name: Upload NDS artifact
