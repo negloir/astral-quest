@@ -1,6 +1,6 @@
 #include "game.h"
 #include <fat.h>
-
+#include <string.h>
 static Player gPlayer;
 static Enemy  gEnemy;
 static int    gTurn = 0; // 0=player,1=enemy
