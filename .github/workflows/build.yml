@@ -10,6 +10,10 @@ jobs:
       image: devkitpro/devkitarm:latest
     steps:
       - uses: actions/checkout@v4
+      - name: Sync pacman database
+        run: dkp-pacman -Syu --noconfirm
+      - name: Install nds-dev
+        run: dkp-pacman -S --noconfirm nds-dev
       - name: Build .NDS
         run: make
       - name: Upload NDS artifact
