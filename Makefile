@@ -1,5 +1,5 @@
 #---------------------------------------------------------------------------------
-# Minimal libnds Makefile for ARM9 + NitroFS
+# Minimal libnds Makefile for ARM9 + NitroFS (with Calico stub support)
 #---------------------------------------------------------------------------------
 
 .SUFFIXES:
@@ -31,8 +31,14 @@ LDFLAGS   := -specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 LIBS      := -lnds9 -lfilesystem -lfat
 LIBDIRS   := $(LIBNDS)
 
+# Include paths — ensure our local include/ is searched first for <calico.h>
+export INCLUDE := \
+  $(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir) -iquote $(CURDIR)/$(dir)) \
+  $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+  -I$(CURDIR)/$(BUILD)
+
 #---------------------------------------------------------------------------------
-# Do not edit below unless you know what you're doing
+# Build rules
 #---------------------------------------------------------------------------------
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
@@ -52,9 +58,6 @@ endif
 
 export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 export OFILES          := $(OFILES_SOURCES)
-export INCLUDE         := $(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
-                           $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-                           -I$(CURDIR)/$(BUILD)
 export LIBPATHS        := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 .PHONY: $(BUILD) clean
