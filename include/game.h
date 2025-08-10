@@ -1,5 +1,8 @@
 #ifndef ARM9
-#define ARM9
+#define ARM9 1
+#endif
+#ifndef __NDS__
+#define __NDS__ 1
 #endif
 #include <nds.h>
 #include <stdio.h>
