@@ -1,40 +1,27 @@
-# Build in current dir (.github/workflows)
+# ----- Minimal Makefile for libnds -----
+
 ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment.")
 endif
 
+# Use devkitPro rules (provides all targets)
 include $(DEVKITARM)/ds_rules
 
+# Project settings
 TARGET      := astral_quest
-BUILD       := build
 SOURCES     := source
 INCLUDES    := include
-NITRO_FILES := nitrofiles
+NITRO_FILES := nitrofiles     # folder must exist (can be empty)
 
+# Optional flags (sane defaults)
 ARCH     := -mthumb -mthumb-interwork
-CFLAGS   := -g -Wall -O2 -ffast-math -fomit-frame-pointer -march=armv5te -mtune=arm946e-s $(ARCH)
-CFLAGS   += $(INCLUDE) -DARM9
+CFLAGS   := -g -Wall -O2 -ffast-math -fomit-frame-pointer -march=armv5te -mtune=arm946e-s $(ARCH) $(INCLUDE) -DARM9
 CXXFLAGS := $(CFLAGS) -fno-rtti -fno-exceptions
 ASFLAGS  := -g $(ARCH)
-LDFLAGS  := -specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
+LDFLAGS  := -specs=ds_arm9.specs -g $(ARCH)
 
+# Link order matters
 LIBS     := -lnds9 -lfilesystem -lfat
-LIBDIRS  := $(LIBNDS)
-
-ifneq ($(BUILD),$(notdir $(CURDIR)))
-export OUTPUT   := $(CURDIR)/$(TARGET)
-export VPATH    := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir))
-export DEPSDIR  := $(CURDIR)/$(BUILD)
-CFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
-SFILES   := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-
-ifeq ($(strip $(CPPFILES)),)
-  export LD := $(CC)
-else
-  export LD := $(CXX)
-endif
-
 export OFILES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 export INCLUDE  := -iquote $(CURDIR)/$(INCLUDES) -I$(LIBNDS)/include -I$(CURDIR)/$(BUILD)
 export LIBPATHS := -L$(LIBNDS)/lib
