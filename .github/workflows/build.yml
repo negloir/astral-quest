@@ -10,16 +10,14 @@ jobs:
     container:
       image: devkitpro/devkitarm:latest
     steps:
+      # Get your repo
       - uses: actions/checkout@v4
 
-      # Install missing Calico package so calico.h is available
-      - name: Install Calico headers
-        run: |
-          dkp-pacman -Sy --noconfirm calico
-
+      # Build the NDS
       - name: Build
         run: make
 
+      # Upload compiled files
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
