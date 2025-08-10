@@ -14,14 +14,17 @@ jobs:
         run: |
           pacman-key --init
           pacman-key --populate
-      - name: Sync pacman database
-        run: dkp-pacman -Syu --noconfirm
-      - name: Install nds-dev and tools
-        run: dkp-pacman -S --noconfirm devkitARM general-tools dstools ndstool libnds libfat-nds nds-dev dkp-toolchain-vars
-      - name: Set up devkitPro environment
-        run: source /etc/profile.d/devkit-env.sh
-      - name: Build .NDS
-        run: make
+      - name: Add fallback pacman mirror and sync database
+        run: |
+          echo "Server = https://apt.devkitpro.org/packages/\$repo" > /etc/pacman.d/mirrorlist
+          dkp-pacman -Syyu --noconfirm
+      - name: Install full nds development tools
+        run: dkp-pacman -S --noconfirm devkitARM general-tools dstools ndstool libnds libfat-nds nds-dev devkitARM-rules dkp-toolchain-vars
+      - name: Build .NDS with verbose output
+        shell: bash
+        run: |
+          source /opt/devkitpro/devkit-env.sh
+          make V=1
       - name: Upload NDS artifact
         uses: actions/upload-artifact@v4
         with:
