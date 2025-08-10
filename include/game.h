@@ -1,4 +1,6 @@
-#pragma once
+#ifndef ARM9
+#define ARM9
+#endif
 #include <nds.h>
 #include <stdio.h>
 
