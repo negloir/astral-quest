@@ -20,16 +20,24 @@ jobs:
           dkp-pacman -Syyu --noconfirm
       - name: Install full nds development tools
         run: dkp-pacman -S --noconfirm devkitARM general-tools dstools ndstool libnds libfat-nds nds-dev devkitARM-rules dkp-toolchain-vars
-      - name: Build .NDS with verbose output
+      - name: Build .NDS with debug and verbose output
         shell: bash
         run: |
-          source /opt/devkitpro/devkit-env.sh
-          make V=1
+          source /opt/devkitpro/devkit-env.sh || echo "Failed to source devkit-env.sh"
+          echo "DEVKITARM: $DEVKITARM"
+          echo "DEVKITPRO: $DEVKITPRO"
+          echo "PATH: $PATH"
+          which make || echo "make not found"
+          which arm-none-eabi-gcc || echo "arm-none-eabi-gcc not found"
+          which ndstool || echo "ndstool not found"
+          make V=1 || echo "Make failed - see above for details"
       - name: Upload NDS artifact
+        if: always()  # Upload even if build fails, for debug files
         uses: actions/upload-artifact@v4
         with:
-          name: astral_quest_build
+          name: astral_quest_build_debug
           path: |
             astral_quest.nds
             *.map
             *.elf
+            build/*.o  # For object file debug if needed
