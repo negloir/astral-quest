@@ -1,3 +1,5 @@
+#define ARM9 1
+#define __NDS__ 1
 #include "game.h"
 #include <fat.h>
 #include <string.h>
