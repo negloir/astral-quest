@@ -8,10 +8,16 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: devkitpro/devkitarm:20240706   # ✅ pre-Calico libnds, no calico.h issues
+      image: devkitpro/devkitarm:20240706   # ✅ pre-Calico libnds
     steps:
       - uses: actions/checkout@v4
       - name: Build
         run: make
       - name: Upload Artifact
-        uses: actions/upload-art
+        uses: actions/upload-artifact@v4
+        with:
+          name: astral_quest_build
+          path: |
+            astral_quest.nds
+            *.map
+            *.elf
