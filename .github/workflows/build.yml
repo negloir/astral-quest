@@ -1,8 +1,10 @@
-name: Build NDS
+name: Build Astral Quest
+
 on:
   push:
-    branches: [ "**" ]
+    branches: [ "main" ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,34 +12,13 @@ jobs:
       image: devkitpro/devkitarm:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Initialize pacman keys
-        run: |
-          pacman-key --init
-          pacman-key --populate
-      - name: Add fallback pacman mirror and sync database
-        run: |
-          echo "Server = https://apt.devkitpro.org/packages/\$repo" > /etc/pacman.d/mirrorlist
-          dkp-pacman -Syyu --noconfirm
-      - name: Install full nds development tools
-        run: dkp-pacman -S --noconfirm devkitARM general-tools dstools ndstool libnds libfat-nds nds-dev devkitARM-rules dkp-toolchain-vars
-      - name: Build .NDS with debug and verbose output
-        shell: bash
-        run: |
-          source /opt/devkitpro/devkit-env.sh || echo "Failed to source devkit-env.sh"
-          echo "DEVKITARM: $DEVKITARM"
-          echo "DEVKITPRO: $DEVKITPRO"
-          echo "PATH: $PATH"
-          which make || echo "make not found"
-          which arm-none-eabi-gcc || echo "arm-none-eabi-gcc not found"
-          which ndstool || echo "ndstool not found"
-          make V=1 || echo "Make failed - see above for details"
-      - name: Upload NDS artifact
-        if: always()  # Upload even if build fails, for debug files
+      - name: Build
+        run: make
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: astral_quest_build_debug
+          name: astral_quest_build
           path: |
             astral_quest.nds
             *.map
             *.elf
-            build/*.o  # For object file debug if needed
