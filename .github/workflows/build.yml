@@ -3,6 +3,7 @@ on:
   push:
     branches: [ "main" ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -10,8 +11,21 @@ jobs:
       image: devkitpro/devkitarm:latest
     steps:
       - uses: actions/checkout@v4
+
+      # Install missing headers expected by libnds (Calico)
+      - name: Install Calico (headers) if missing
+        run: |
+          if ! grep -q calico.h /opt/devkitpro/libnds/include/nds.h 2>/dev/null; then
+            echo "libnds too old? continuing..."
+          fi
+          if ! ls /opt/devkitpro/**/include/calico.h >/dev/null 2>&1; then
+            sudo dkp-pacman -Syyu --noconfirm || true
+            sudo dkp-pacman -S --noconfirm calico || sudo dkp-pacman -S --noconfirm calico-headers
+          fi
+
       - name: Build
         run: make
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
