@@ -1,11 +1,11 @@
 #---------------------------------------------------------------------------------
-# Clean libnds Makefile (ARM9, NitroFS). Works in devkitpro/devkitarm CI.
+# Minimal libnds Makefile for ARM9 + NitroFS
 #---------------------------------------------------------------------------------
 
 .SUFFIXES:
 
 ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. (CI container does this automatically)")
+$(error "Please set DEVKITARM in your environment.")
 endif
 
 include $(DEVKITARM)/ds_rules
@@ -17,11 +17,6 @@ TARGET       := astral_quest
 BUILD        := build
 SOURCES      := source
 INCLUDES     := include
-DATA         :=
-GRAPHICS     :=
-AUDIO        :=
-
-# NitroFS directory to embed into the ROM (must exist; can be empty)
 NITRO_FILES  := nitrofiles
 
 #---------------------------------------------------------------------------------
@@ -29,13 +24,10 @@ NITRO_FILES  := nitrofiles
 #---------------------------------------------------------------------------------
 ARCH      := -mthumb -mthumb-interwork
 CFLAGS    := -g -Wall -O2 -fomit-frame-pointer -ffast-math \
-             -march=armv5te -mtune=arm946e-s $(ARCH)
-CFLAGS    += $(INCLUDE) -DARM9
+             -march=armv5te -mtune=arm946e-s $(ARCH) $(INCLUDE) -DARM9
 CXXFLAGS  := $(CFLAGS) -fno-rtti -fno-exceptions
 ASFLAGS   := -g $(ARCH)
 LDFLAGS   := -specs=ds_arm9.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
-
-# Link order matters
 LIBS      := -lnds9 -lfilesystem -lfat
 LIBDIRS   := $(LIBNDS)
 
@@ -45,16 +37,12 @@ LIBDIRS   := $(LIBNDS)
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 export OUTPUT      := $(CURDIR)/$(TARGET)
-export VPATH       := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
-                      $(foreach dir,$(DATA),$(CURDIR)/$(dir)) \
-                      $(foreach dir,$(GRAPHICS),$(CURDIR)/$(dir))
+export VPATH       := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir))
 export DEPSDIR     := $(CURDIR)/$(BUILD)
 
 CFILES    := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES  := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES    := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-BINFILES  := $(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
-PNGFILES  := $(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 
 ifeq ($(strip $(CPPFILES)),)
   export LD := $(CC)
@@ -63,16 +51,11 @@ else
 endif
 
 export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-export OFILES_BINARIES:= $(addsuffix .o,$(BINFILES))
-export OFILES         := $(OFILES_BINARIES) $(OFILES_SOURCES)
-
-export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) \
-                 $(addsuffix .h,$(subst .,_,$(PNGFILES)))
-
-export INCLUDE  := $(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
-                   $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-                   -I$(CURDIR)/$(BUILD)
-export LIBPATHS := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+export OFILES          := $(OFILES_SOURCES)
+export INCLUDE         := $(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
+                           $(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+                           -I$(CURDIR)/$(BUILD)
+export LIBPATHS        := $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 .PHONY: $(BUILD) clean
 
@@ -90,8 +73,6 @@ $(OUTPUT).nds: $(OUTPUT).elf $(NITRO_FILES)
 	@ndstool -c $@ -9 $(TARGET).elf -d $(NITRO_FILES)
 	@echo built ... $(notdir $@)
 
-$(NITRO_FILES): ; @:
-
 $(OUTPUT).elf: $(OFILES)
 	@echo linking $(notdir $@)
 	@$(LD) $(LDFLAGS) $(OFILES) $(LIBPATHS) $(LIBS) -o $@
@@ -107,10 +88,6 @@ $(OUTPUT).elf: $(OFILES)
 %.o: %.s
 	@echo $(notdir $<)
 	@$(CC) -MMD -MF $(DEPSDIR)/$*.d $(ASFLAGS) -c $< -o $@
-
-%.bin.o: %.bin
-	@echo $(notdir $<)
-	@$(bin2o)
 
 endif
 #---------------------------------------------------------------------------------
